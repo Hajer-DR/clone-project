@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="8.40">
+<file name="/home/katsudoka/Bureau/devOpsaws/src/main/java/com/ecommerce/microcommerce/MicrocommerceApplication.java">
+</file>
+<file name="/home/katsudoka/Bureau/devOpsaws/src/main/java/com/ecommerce/microcommerce/dao/ProductDao.java">
+</file>
+<file name="/home/katsudoka/Bureau/devOpsaws/src/main/java/com/ecommerce/microcommerce/dao/ProductDaoI.java">
+</file>
+<file name="/home/katsudoka/Bureau/devOpsaws/src/main/java/com/ecommerce/microcommerce/model/Product.java">
+</file>
+<file name="/home/katsudoka/Bureau/devOpsaws/src/main/java/com/ecommerce/microcommerce/web/controller/ProductController.java">
+</file>
+</checkstyle>

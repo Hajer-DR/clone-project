@@ -1,0 +1,5 @@
+com/ecommerce/microcommerce/web/controller/ProductController.class
+com/ecommerce/microcommerce/dao/ProductDao.class
+com/ecommerce/microcommerce/dao/ProductDaoI.class
+com/ecommerce/microcommerce/model/Product.class
+com/ecommerce/microcommerce/MicrocommerceApplication.class

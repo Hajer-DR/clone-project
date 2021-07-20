@@ -1,0 +1,6 @@
+projectKey=sonarProject
+serverUrl=http://192.168.1.5:9000
+serverVersion=7.9.6.41879
+dashboardUrl=http://192.168.1.5:9000/dashboard?id=sonarProject
+ceTaskId=AXjQgRe5tjt2fvx2ATGH
+ceTaskUrl=http://192.168.1.5:9000/api/ce/task?id=AXjQgRe5tjt2fvx2ATGH

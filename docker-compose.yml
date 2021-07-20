@@ -1,0 +1,23 @@
+version: '3.5'
+
+services:
+ 
+ jenkins:
+  image: jenkins/jenkins:lts
+  user: "root"
+  privileged: true
+  container_name: jenkins-admin
+  volumes:
+   - ~/jenkins-data:/var/jenkins_home
+   - "/var/run/docker.sock:/var/run/docker/sock"
+   - ./:/home
+  ports:
+   - "8085:8080"
+  networks:
+   - devops_devops
+
+networks:
+ devops_devops:
+  name: devops_devops
+  
+
