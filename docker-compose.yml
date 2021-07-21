@@ -1,23 +1,65 @@
-version: '3.5'
-
+version: "3.5"
 services:
- 
- jenkins:
-  image: jenkins/jenkins:lts
-  user: "root"
-  privileged: true
-  container_name: jenkins-admin
-  volumes:
-   - ~/jenkins-data:/var/jenkins_home
-   - "/var/run/docker.sock:/var/run/docker/sock"
-   - ./:/home
-  ports:
-   - "8085:8080"
-  networks:
-   - devops_devops
-
+  ############################### JENKINS ########################################
+  jenkins:
+    image: jenkins/docker
+    build:
+     context: pipeline
+    privileged: true
+    user: root
+    tty: true
+    ports:
+      - 8085:8080
+      - 50000:50000
+    container_name: jenkins-admin
+    volumes:
+      - ~/jenkins:/var/jenkins_home
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - devops_devops
+  ################################ SONARQUBE #############################################
+  sonarqube:
+   image: sonarqube:lts
+   container_name: sonarqube
+   tty: true
+   ports:
+     - "9000:9000"
+     - "9092:9092"
+   networks:
+    - devops_devops
+   environment:
+     - SONARQUBE_HOME=/opt/sonarqube
+     - SONARQUBE_JDBC_USERNAME=sonar
+     - SONARQUBE_JDBC_PASSWORD=sonar
+     - SONARQUBE_JDBC_URL=jdbc:postgresql://db:5432/sonar
+   volumes:
+     - /app/sonarqube/conf:/opt/sonarqube/conf
+     - /app/sonarqube/data:/opt/sonarqube/data
+     - /app/sonarqube/logs:/opt/sonarqube/logs
+     - /app/sonarqube/extensions:/opt/sonarqube/extensions
+     ############################     DB: POSTGRES   ###############################################
+  db:
+    image: postgres
+    container_name: postgres
+    tty: true
+    networks:
+      - devops_devops
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+    volumes:
+      - /app/sonarqube/postgres:/var/lib/postgresql/data
+    #############################  NEXUS  ###############################################################
+  nexus:
+    image: sonatype/nexus3
+    volumes:
+      - ./nexus-data:/nexus-data sonatype/nexus3
+    ports:
+      - "8081:8081"
+    networks:
+      - devops_devops
+    ####################################################################################################
 networks:
- devops_devops:
-  name: devops_devops
-  
-
+  devops_devops:
+    name: devops_devops
+    driver: bridge
