@@ -1,7 +1,12 @@
 pipeline {
 
-  agent any
-  environment {
-  }
-   
+ agent any
+ environment {
+  
+ }
+ options {
+ 
+  skipDefaultCheckout()
+  
+ }
 }
