@@ -1,7 +1,12 @@
 pipeline {
 
  agent any
-
+ 
+ environment {
+  SONARQUBE_URL = "http://192.168.0.170"
+  SONARQUBE_PORT = "9000"
+ }
+   
  options {
  
   skipDefaultCheckout()  
@@ -73,4 +78,48 @@ pipeline {
 }
 } 
   }
+   stage('Code Quality Analysis') {
+
+   parallel {
+   
+    stage('JavaDoc') {
+
+     agent {
+      docker {
+       image 'maven:3.6.0-jdk-8-alpine'
+       args '-v /root/.m2/repository:/root/.m2/repository'
+       reuseNode true
+      }
+     }
+     steps {
+      sh ' mvn javadoc:javadoc'
+      step([$class: 'JavadocArchiver', javadocDir: './target/site/apidocs', keepAll: 'true'])
+     }
+    }
+    
+    stage('SonarQube') {
+
+	
+     agent {
+      docker {
+       image 'maven:3.6.0-jdk-8-alpine'    
+	 args "-v /root/.m2/repository:/root/.m2/repository --net=devopsnet "  
+       reuseNode true
+      } 
+     }
+     steps {
+      sh " mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL:$SONARQUBE_PORT"
+     }
+    	
+   
+   post {
+    always {
+     // using warning next gen plugin
+     recordIssues aggregatingResults: true, tools: [javaDoc(), checkStyle(pattern: '**/target/checkstyle-result.xml')]
+    }
+   }
+  }
+   }
+   }
+ //test
 }
