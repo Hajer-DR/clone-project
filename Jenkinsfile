@@ -6,7 +6,14 @@ pipeline {
  }
  options {
  
-  skipDefaultCheckout()
-  
+  skipDefaultCheckout()  
  }
+  stages {
+ 
+  stage('SCM') {
+   steps {
+    checkout scm
+   }
+  }
+  }
 }
