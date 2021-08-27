@@ -2,9 +2,19 @@
 pipeline {
  agent any
  environment {
-  
+  // This can be nexus3 or nexus2
+  NEXUS_VERSION = "nexus3"
+  // This can be http or https
+  NEXUS_PROTOCOL = "http"
+  // Where your Nexus is running. In my case:
+  NEXUS_URL = "192.168.0.170:1081"
+  // Repository where we will upload the artifact
+  NEXUS_REPOSITORY = "Devops-repo"
+  // Jenkins credential id – configured in previous step
+  NEXUS_CREDENTIAL_ID = "nexus-user-credentials"
   SONARQUBE_URL = "http://192.168.0.170"
   SONARQUBE_PORT = "9000"
+ 
  }
  options {
   skipDefaultCheckout()
