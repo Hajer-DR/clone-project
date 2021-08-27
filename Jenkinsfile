@@ -9,7 +9,7 @@ pipeline {
  options {
   skipDefaultCheckout()
  }
- stages {
+stages {
   stage('SCM') {
    steps {
     checkout scm
@@ -30,11 +30,11 @@ pipeline {
      }
      steps {
       sh ' mvn clean compile'
-    sh 'mvn package -DskipTests=true'
+	  sh 'mvn package -DskipTests=true'
      }
     }
-  
-  
+	
+	
   stage('Unit Tests') {
 
 
@@ -77,47 +77,8 @@ pipeline {
      // to add artifacts in jenkins pipeline tab (UI)
      archiveArtifacts 'target/*.jar'
     }  } }}} 
-
-  stage('Code Quality Analysis') {
-
-   parallel {
-   
-    stage('JavaDoc') {
-
-     agent {
-      docker {
-       image 'maven:3.6.0-jdk-8-alpine'
-       args '-v /root/.m2/repository:/root/.m2/repository'
-       reuseNode true
-      }
-     }
-     steps {
-      sh ' mvn javadoc:javadoc'
-      step([$class: 'JavadocArchiver', javadocDir: './target/site/apidocs', keepAll: 'true'])
-     }
-    }
-    stage('SonarQube') {
-
   
-     agent {
-      docker {
-       image 'maven:3.6.0-jdk-8-alpine'    
-   args "-v /root/.m2/repository:/root/.m2/repository --net=devopsnet "  
-       reuseNode true
-      } 
-     }
-     steps {
-      sh " mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL:$SONARQUBE_PORT"
-     }   
-   post {
-    always {
-     // using warning next gen plugin
-     recordIssues aggregatingResults: true, tools: [javaDoc(), checkStyle(pattern: '**/target/checkstyle-result.xml')]
-    }
-   }
-  }
- }}
-    stage('Code Quality Analysis') {
+  stage('Code Quality Analysis') {
 
    parallel {
    
@@ -176,7 +137,7 @@ pipeline {
 	 
      // Extract the path from the File found
      artifactPath = filesByGlob[0].path;
-     // Assign to a boolean response verifying If the artifact name exists
+// Assign to a boolean response verifying If the artifact name exists
      artifactExists = fileExists artifactPath;
 	 
 	 
@@ -216,5 +177,3 @@ pipeline {
      } else {
       error "*** File: ${artifactPath}, could not be found";
      }  }  } } }  }
-}
-}
