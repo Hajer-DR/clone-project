@@ -1,40 +1,40 @@
+
 pipeline {
  agent any
  environment {
-  
+  registry = "narjess6/devops"
   // This can be nexus3 or nexus2
   NEXUS_VERSION = "nexus3"
   // This can be http or https
   NEXUS_PROTOCOL = "http"
   // Where your Nexus is running. In my case:
-  NEXUS_URL = "192.168.0.170:1081"
+  //NEXUS_URL = "192.168.0.170:1081"
   // Repository where we will upload the artifact
-  NEXUS_REPOSITORY = "maven-snapshots"
-  // Jenkins credential id – configured in previous step
+  NEXUS_REPOSITORY = "maven-nexus-repo"
+  // Jenkins credential id to authenticate to Nexus OSS
   NEXUS_CREDENTIAL_ID = "nexus-user-credentials"
+  /* 
+    Windows: set the ip address of docker host. In my case 192.168.99.100.
+    to obtains this address : $ docker-machine ip
+    Linux: set localhost to SONARQUBE_URL
+  */
   SONARQUBE_URL = "http://192.168.0.170"
   SONARQUBE_PORT = "9000"
  }
-
  options {
- 
   skipDefaultCheckout()
-  
  }
-
  stages {
- //////////////////////////////////////////////////////////////
   stage('SCM') {
    steps {
     checkout scm
    }
   }
-
-//////////////////////////////////////////////////////
-stage('Build') {
-     parallel {
-    stage('Compile') {
   
+    
+  stage('Build') {
+   parallel {
+    stage('Compile') {
      agent {
       docker {
        image 'maven:3.6.0-jdk-8-alpine'
@@ -42,18 +42,15 @@ stage('Build') {
        // to use the same node and workdir defined on top-level pipeline for all docker agents
        reuseNode true
       }
-    
      }
-   
-        steps {
-      sh 'mvn clean compile'
-    sh 'mvn package -DskipTests=true'
+     steps {
+      sh ' mvn clean compile'
+	  sh 'mvn package -DskipTests=true'
      }
     }
-  }
-}
-//////////////////////////////////////////////////////////
-stage('Unit Tests') {
+	
+	
+  stage('Unit Tests') {
 
 
    agent {
@@ -72,10 +69,10 @@ stage('Unit Tests') {
  //   }
  //  }
   }
-//////////////////////////////////////////////////////
+  stage('Integration Tests') {
 
-stage('Integration Tests') {
-  agent {
+   
+   agent {
     docker {
      image 'maven:3.6.0-jdk-8-alpine'
      args '-v /root/.m2/repository:/root/.m2/repository'
@@ -85,28 +82,27 @@ stage('Integration Tests') {
    steps {
     sh 'mvn verify -Dsurefire.skip=true'
    }
- 
- post {
-   
+   post {
     always {
      junit 'target/failsafe-reports/**/*.xml'
     }
     success {
      stash(name: 'artifact', includes: 'target/*.jar')
      stash(name: 'pom', includes: 'pom.xml')
-
      // to add artifacts in jenkins pipeline tab (UI)
      archiveArtifacts 'target/*.jar'
     }
-   }   
-  }  
+   }
+  }
+ }
+} 
+  
+  stage('Code Quality Analysis') {
 
-////////////////////////////////////////////////////////
-
-stage('Code Quality Analysis') {
-
+   
    parallel {
    
+
     stage('JavaDoc') {
 
      agent {
@@ -121,19 +117,22 @@ stage('Code Quality Analysis') {
       step([$class: 'JavadocArchiver', javadocDir: './target/site/apidocs', keepAll: 'true'])
      }
     }
+    stage('SonarQube') {
 
-stage('SonarQube') {
-       agent {
+	
+     agent {
       docker {
        image 'maven:3.6.0-jdk-8-alpine'    
-   args "-v /root/.m2/repository:/root/.m2/repository --net=devopsnet "  
+	 args "-v /root/.m2/repository:/root/.m2/repository --net=devopsnet "  
        reuseNode true
       } 
      }
      steps {
       sh " mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL:$SONARQUBE_PORT"
      }
-      
+    
+	
+	
    
    post {
     always {
@@ -142,33 +141,35 @@ stage('SonarQube') {
     }
    }
   }
-}
-}
-
-/////////////////////////////////////////
-stage('Deploy Artifact To Nexus') {
+  
+  }}
+  
+   stage('Deploy Artifact To Nexus') {
 
    steps {
     script {
+ 
      // Read POM xml file using 'readMavenPom' step , this step 'readMavenPom' is included in: https://plugins.jenkins.io/pipeline-utility-steps
      pom = readMavenPom file: "pom.xml";
-   
+	 
      // Find built artifact under target folder
      filesByGlob = findFiles(glob: "target/*.${pom.packaging}");
-   
+	 
      // Print some info from the artifact found
      echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
-   
+	 
      // Extract the path from the File found
      artifactPath = filesByGlob[0].path;
-   
+	 
      // Assign to a boolean response verifying If the artifact name exists
      artifactExists = fileExists artifactPath;
+	 
+	 
      if (artifactExists) {
-   
-   
-   //le upload se fait ici
-   
+	 
+	 
+	 //le upload se fait ici
+	 
       nexusArtifactUploader(
        nexusVersion: NEXUS_VERSION,
        protocol: NEXUS_PROTOCOL,
@@ -178,34 +179,76 @@ stage('Deploy Artifact To Nexus') {
        repository: NEXUS_REPOSITORY,
        credentialsId: NEXUS_CREDENTIAL_ID,
       
-    artifacts:
 
-    [
+	  artifacts:
+
+	  [
         // Artifact generated such as .jar, .ear and .war files.
         [artifactId: pom.artifactId,
          classifier: '',
          file: artifactPath,
          type: pom.packaging
         ],
-    
+		
         // Lets upload the pom.xml file for additional information for Transitive dependencies
         [artifactId: pom.artifactId,
          classifier: '',
          file: "pom.xml",
          type: "pom"
-        ]   
-       ]     
+        ]
+		
+       ]
+	   
+	   
       )
-     } 
-else {
+  
+	  
+     } else {
       error "*** File: ${artifactPath}, could not be found";
      }
+    }
+   }
+  }
+  
+ 
+  
 
-     }  } } 
+	
+stage('Publish docker image to dockerhub with our app updated') {
+            environment {
+                registryCredential = 'dockerhub'
+            }
+            steps{
+                script {
+                    sh 'pwd'
+                    sh 'ls -l'
+                    sh 'cd target'
+                    sh 'ls -l'
+                    def appimage = docker.build registry + ":$BUILD_NUMBER"
+                    docker.withRegistry( '', registryCredential ) {
+                        appimage.push()
+                        appimage.push('latest')
+                    }
+                }
+            }
+        }
+		
+
+    stage('Deploy App') {
+      steps {
+        script {
+          kubernetesDeploy(configs: "deployment.yml", kubeconfigId: "kubecreds9999")
+        }
+      }
+    }
 
 
-////////////////////////////////////
 
-
+ 
  }
-}
+ 
+
+ 
+  }
+
+ 
