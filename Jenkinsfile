@@ -29,13 +29,13 @@ stage('Build') {
       }
     
      }
-   }
+   
         steps {
       sh 'mvn clean compile'
     sh 'mvn package -DskipTests=true'
      }
     }
   }
-
 }
  }
+}
