@@ -9,7 +9,7 @@ pipeline {
   // Where your Nexus is running. In my case:
   NEXUS_URL = "192.168.0.170:1081"
   // Repository where we will upload the artifact
-  NEXUS_REPOSITORY = "Devops-repo"
+  NEXUS_REPOSITORY = "maven-snapshots"
   // Jenkins credential id – configured in previous step
   NEXUS_CREDENTIAL_ID = "nexus-user-credentials"
   SONARQUBE_URL = "http://192.168.0.170"
