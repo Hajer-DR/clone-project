@@ -1,3 +1,6 @@
+ 
+   
+    
  pipeline {
  agent any
  environment {
@@ -68,8 +71,8 @@
   }
 
 
+stage('Integration Tests') {
 
-    stage('Integration Tests') {
    
    agent {
     docker {
@@ -86,15 +89,24 @@
      junit 'target/failsafe-reports/**/*.xml'
     }
     success {
-     stash(name: 'artifact', includes: 'target/*.war')
+     stash(name: 'artifact', includes: 'target/*.jar')
      stash(name: 'pom', includes: 'pom.xml')
      // to add artifacts in jenkins pipeline tab (UI)
-     archiveArtifacts 'target/*.war'
+     archiveArtifacts 'target/*.jar'
     }
    }
   }
 
-stage('JavaDoc') {
+
+
+ stage('Code Quality Analysis') {
+
+   
+   parallel {
+   
+
+    stage('JavaDoc') {
+
      agent {
       docker {
        image 'maven:3.6.0-jdk-8-alpine'
@@ -107,21 +119,29 @@ stage('JavaDoc') {
       step([$class: 'JavadocArchiver', javadocDir: './target/site/apidocs', keepAll: 'true'])
      }
     }
+    stage('SonarQube') {
 
-
-       stage('SonarQube') {
+  
      agent {
       docker {
-       image 'maven:3.6.0-jdk-8-alpine'
-       args "-v /root/.m2/repository:/root/.m2/repository"
+       image 'maven:3.6.0-jdk-8-alpine'    
+   args "-v /root/.m2/repository:/root/.m2/repository --net=devopsnet "  
        reuseNode true
-      }
+      } 
      }
      steps {
       sh " mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL:$SONARQUBE_PORT"
-     }
+     } 
+   
+   post {
+    always {
+     // using warning next gen plugin
+     recordIssues aggregatingResults: true, tools: [javaDoc(), checkStyle(pattern: '**/target/checkstyle-result.xml')]
     }
-
+   }
+  }
+  
+  }}
 
     stage('Deploy Artifact To Nexus') {
    steps {
