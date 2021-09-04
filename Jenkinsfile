@@ -5,7 +5,7 @@ pipeline {
   skipDefaultCheckout()
  }
  stages {
-  stage('SsCM') {
+  stage('SCM') {
    steps {
     checkout scm
    }
