@@ -10,31 +10,7 @@ pipeline {
   skipDefaultCheckout()
   
  }
- stages {
  
-  stage('SCM') {
-   steps {
-    checkout scm
-   }
-  }
-  
-    
-  stage('Build') {
-  
-   parallel {
-   
-    stage('Compile') {
-pipeline {
-
- agent any
- environment {
-  
- }
- options {
- 
-  skipDefaultCheckout()
-  
- }
  stages {
  
   stage('SCM') {
@@ -116,4 +92,6 @@ pipeline {
   }  
  } 
 }   }  }
+}
+
 
