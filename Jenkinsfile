@@ -1,10 +1,7 @@
 pipeline {
 
  agent any
- environment {
-  AWS_ACCESS_KEY_ID  = credentials('AKIA4YDTLRD7A6EGSXWF')
-  AWS_SECRET_ACCESS_KEY = credentials('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')
- }
+
  options {
  
   skipDefaultCheckout()
