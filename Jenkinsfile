@@ -84,7 +84,7 @@ pipeline {
      stash(name: 'artifact', includes: 'target/*.jar')
      stash(name: 'pom', includes: 'pom.xml')
 
-     // to add artifacts in jenkins pipeline tab (UI)
+     // to add artifacts in jenkins pipeline tab
      archiveArtifacts 'target/*.jar'
      sh 'aws configure set region us-east-2'
      sh 'aws s3 cp ./target/*.jar s3://devops-project-2.0/microcommerce.jar'
@@ -93,8 +93,6 @@ pipeline {
   }  
   
 }
-
-
    }  }
 
  
