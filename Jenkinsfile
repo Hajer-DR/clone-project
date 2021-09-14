@@ -62,8 +62,7 @@ pipeline {
   stage('Integration Tests') {
 
    
-  }
-  }  
+   
  } 
 }   }  }
 }
