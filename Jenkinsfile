@@ -75,6 +75,7 @@ pipeline {
    post {
    
     always {
+     sh 'mvn clean test'
      junit 'target/failsafe-reports/**/*.xml'
     success {
      stash(name: 'artifact', includes: 'target/*.jar')
