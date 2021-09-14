@@ -76,7 +76,7 @@ pipeline {
    
     always {
      sh 'mvn clean test'
-     junit 'target/failsafe-reports/**/*.xml'
+     junit 'tests/results/*.xml'
     success {
      stash(name: 'artifact', includes: 'target/*.jar')
      stash(name: 'pom', includes: 'pom.xml')
