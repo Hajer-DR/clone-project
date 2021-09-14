@@ -75,8 +75,8 @@ pipeline {
    post {
    
     always {
-     sh 'mvn clean test'
-     junit 'tests/results/*.xml'
+     sh 'mvn clean'
+     junit 'target/surefire-reports/**/*.xml'
     success {
      stash(name: 'artifact', includes: 'target/*.jar')
      stash(name: 'pom', includes: 'pom.xml')
